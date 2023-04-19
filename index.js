@@ -84,4 +84,14 @@ app.get('/gpt/:text', async (req, res) => {
           temperature: 0.5,
           max_tokens: 128,
           top_p: 1,
-          frequency
+          frequency: 0
+        },
+        json: true
+      }
+
+      console.log("Sending Prompt to OpenAI API: ")
+      console.dir(options.body)
+
+      request(options, function (error, response, body) {
+        if (error) throw new Error(error);
+        console.log("
