@@ -98,4 +98,5 @@ app.get('/gpt/:text', async (req, res) => {
           let agent_response = body.choices[0].text;
 
           console.log ("Agent answer: " + agent_response)
-          messages.push({role:
+          messages.push({role: "system", content: agent_response})
+          res.send(agent_response
