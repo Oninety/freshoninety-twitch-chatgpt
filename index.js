@@ -71,32 +71,63 @@ app.get('/gpt/:text', async (req, res) => {
       console.dir(messages)
       console.log("User Input: " + text)
 
-      const options = {
-        method: 'POST',
-        url: 'https://api.pawan.krd/v1/chat/completions',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-        },
-        body: {
-          model: 'text-davinci-003',
-          prompt: messages,
-          temperature: 0.5,
-          max_tokens: 128,
-          top_p: 1,
-          frequency_penalty: 0,
-          presence_penalty: 0
-        },
-        json: true
-      };
+      const response = await openai.createChatCompletion({
+        model: "gpt-3.5-turbo",
+        messages: messages,
+        temperature: 0.5,
+        max_tokens: 128,
+        top_p: 1,
+        frequency_penalty: 0,
+        presence_penalty: 0,
+      });
+    
+      if (response.data.choices) {
+        let agent_response = response.data.choices[0].message.content
 
-      request(options, (error, response, body) => {
-        if (error) throw new Error(error);
-        console.log('Response:', body);
+        console.log ("Agent answer: " + agent_response)
+        messages.push({role: "assistant", content: agent_response})
 
-        if (body && body.choices) {
-          let agent_response = body.choices[0].text;
+        //Check for Twitch max. chat message length limit and slice if needed
+        if(agent_response.length > 399){
+          console.log("Agent answer exceeds twitch chat limit. Slicing to first 399 characters.")
+          agent_response = agent_response.substring(0, 399)
+          console.log ("Sliced agent answer: " + agent_response)
+        }
 
+        res.send(agent_response)
+      } else {
+        res.send("Something went wrong. Try again later!")
+      }
+
+    } else {
+      //PROMPT MODE EXECUTION
+      const prompt = file_context + "\n\nQ:" + text + "\nA:";
+      console.log("User Input: " + text)
+
+      const response = await openai.createCompletion({
+        model: "text-davinci-003",
+        prompt: prompt,
+        temperature: 0.5,
+        max_tokens: 128,
+        top_p: 1,
+        frequency_penalty: 0,
+        presence_penalty: 0,
+      });
+      if (response.data.choices) {
+        let agent_response = response.data.choices[0].text
           console.log ("Agent answer: " + agent_response)
-          messages.push({role: "system", content: agent_response})
-          res.send(agent_response
+          //Check for Twitch max. chat message length limit and slice if needed
+          if(agent_response.length > 399){
+            console.log("Agent answer exceeds twitch chat limit. Slicing to first 399 characters.")
+            agent_response = agent_response.substring(0, 399)
+            console.log ("Sliced Agent answer: " + agent_response)
+          }
+
+          res.send(agent_response)
+      } else {
+          res.send("Something went wrong. Try again later!")
+      }
+    }
+    
+})
+app.listen(process.env.PORT || 3000)
