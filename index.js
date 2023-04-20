@@ -94,4 +94,7 @@ app.get('/gpt/:text', async (req, res) => {
 
       request(options, function (error, response, body) {
         if (error) throw new Error(error);
-        console.log("
+        console.log("Received response from OpenAI API. Output: ")
+        console.dir(body.choices[0].text)
+        //Add agent response to messages
+        messages.push({role: "system", content: body.choices[
