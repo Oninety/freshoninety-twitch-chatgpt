@@ -1,10 +1,3 @@
-import { Configuration, OpenAIApi } from "openai";
-
-const configuration = new Configuration({
-	apiKey: "pk-IQijjUUfepepmxzojmLWQxdiwXXykPcktDikTSpZwPpAdtSD",
-	basePath: "https://api.pawan.krd/v1",
-});
-
 const express = require('express')
 const request = require('request')
 const app = express()
@@ -54,6 +47,11 @@ app.get('/gpt/:text', async (req, res) => {
     //The agent should recieve Username:Message in the text to identify conversations with different users in his history. 
     
     const text = req.params.text
+    const { Configuration, OpenAIApi } = require("openai");
+
+    const configuration = new Configuration({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
 
     const openai = new OpenAIApi(configuration);      
     
@@ -95,9 +93,6 @@ app.get('/gpt/:text', async (req, res) => {
           agent_response = agent_response.substring(0, 399)
           console.log ("Sliced agent answer: " + agent_response)
         }
-
-       
-
 
         res.send(agent_response)
       } else {
